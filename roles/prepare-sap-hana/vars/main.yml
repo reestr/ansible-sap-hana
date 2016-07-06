@@ -1,0 +1,37 @@
+packages_list:
+  - xfsprogs
+  - net-tools
+  - bind-utils
+  - gtk2
+  - libicu
+  - xulrunner
+  - tcsh
+  - sudo
+  - libssh2
+  - expect
+  - cairo
+  - graphviz
+  - iptraf-ng
+  - krb5-workstation
+  - krb5-libs
+  - libpng12
+  - ntp
+  - ntpdate
+  - nfs-utils
+  - lm_sensors
+  - rsyslog
+  - openssl098e
+  - openssl
+  - PackageKit-gtk3-module
+  - libcanberra-gtk2
+  - libtool-ltdl
+  - xorg-x11-xauth
+  - numactl
+req_ssl_dict:
+  - { src: 'libssl.so.0.9.8e', dest: 'libssl.so.0.9.8' }
+  - { src: 'libssl.so.1.0.1e', dest: 'libssl.so.1.0.1' }
+  - { src: 'libcrypto.so.0.9.8e', dest: 'libssl.so.0.9.8' }
+  - { src: 'libcrypto.so.1.0.1e', dest: 'libssl.so.1.0.1' }
+kernel_params:
+# OS level NUMA balencing should be disabled
+  kernel.numa_balencing: 0

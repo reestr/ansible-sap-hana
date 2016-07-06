@@ -1,0 +1,57 @@
+- name: Install @base packages
+  yum: name="@base" state=latest
+- name: Install required libraries
+  yum: name={{ item }} state=present
+  with_items: "{{packages_list}}"
+- name: Disable SELinux
+  selinux: state=disabled
+- name: Disable Firewall Deamon (firewalld)
+  service: name=firewalld state=stopped enabled=no
+- name: Disable kdump
+  service: name=kdump state=stopped enabled=no
+- name: Disble abrtd
+  service: name=abrtd state=stopped enabled=no
+  ignore_errors: yes
+- name: Disble abrt-ccpp
+  service: name=abrt-ccpp state=stopped enabled=no
+  ignore_errors: yes
+- name: PAM limits set per HANA reqs
+  pam_limits: domain="*" limit_type=hard limit_item=core value=0
+  pam_limits: domain="*" limit_type=soft limit_item=core value=0
+  pam_limits: domain=@sapsys limit_type=soft limit_item=nproc value=unlimited
+- name: Disable NUMA Balencing
+  sysctl: name=kernel.numa_balancing value=0 state=present
+- name: Create HANA required SSL symlinks
+  file: src=/usr/lib64/{{ item.src }} dest=/usr/lib64/{{ item.dest }} state=link force=yes
+  with_items: "{{req_ssl_dict}}"
+#  - { src: 'libssl.so.0.9.8e', dest: 'libssl.so.0.9.8' }
+#  - { src: 'libssl.so.1.0.1e', dest: 'libssl.so.1.0.1' }
+#  - { src: 'libcrypto.so.0.9.8e', dest: 'libssl.so.0.9.8' }
+#  - { src: 'libcrypto.so.1.0.1e', dest: 'libssl.so.1.0.1' }
+##This is ugly, tidy up sometime
+- name: Check for transparent hugepages on boot
+  command: "grep -q ^GRUB_CMDLINE_LINUX.*transparent_hugepage=never /etc/default/grub"
+  register: updategrubdefault
+  changed_when: false
+  ignore_errors: yes
+- name: Update GRUB defaults to include transparent_hugepage=never
+  command: "sed -i '/^GRUB_CMDLINE_LINUX*./ s/\"$/ transparent_hugepage=never\"/' /etc/default/grub"
+  register: updategrub
+  changed_when: false
+  ignore_errors: yes
+  when: updategrubdefault.rc == 1
+- name: Update GRUB - Identify boot method
+  stat: path=/sys/firmware/efi
+  register: updategrubidentify
+  when: updategrubdefault.rc == 1
+- name: Update GRUB - UEFI
+  command: "grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg"
+  changed_when: false
+  ignore_errors: yes
+  when: updategrubdefault.rc == 1 and updategrubidentify.stat.exists == True
+- name: Update GRUB - BIOS
+  command: "grub2-mkconfig -o /boot/grub2/grub.cfg"
+  changed_when: false
+  ignore_errors: yes
+  when: updategrubdefault.rc == 1 and updategrubidentify.stat.exists == False
+
