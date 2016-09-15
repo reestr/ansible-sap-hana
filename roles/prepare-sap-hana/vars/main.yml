@@ -1,5 +1,6 @@
 packages_list:
   - xfsprogs
+  - libaio
   - net-tools
   - bind-utils
   - gtk2
