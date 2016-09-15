@@ -1,0 +1,7 @@
+---
+- hosts: hana
+  remote_user: root
+
+  roles:
+  - prepare-sap-hana
+
